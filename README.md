@@ -35,6 +35,7 @@ etl/          dataset download, Excel→CSV flattening, one-command pipeline run
 powerbi/      PBIP project: TMDL semantic model + PBIR report definition
 dax/          every measure, with the reasoning behind it
 docs/         data dictionary, validation results, screenshots
+tools/        scripts that generated the report definition (see tools/README.md)
 ```
 
 ## Quick start
