@@ -1,0 +1,24 @@
+# Source data -- regenerate with etl/download_dataset.py + etl/prepare_csv.py.
+# The workbook is 43 MB and the flattened CSV is 105 MB; neither belongs in git
+# when a 40-line script reproduces both byte-for-byte.
+data/raw/
+data/processed/
+
+# Power BI Desktop working files. localSettings.json holds machine-local paths
+# and cached credentials -- committing it leaks your environment.
+**/.pbi/
+**/localSettings.json
+*.pbix.tmp
+*.abf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

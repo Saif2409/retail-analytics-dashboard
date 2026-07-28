@@ -1,0 +1,68 @@
+{
+  "name": "RetailAnalyticsTheme",
+  "dataColors": [
+    "#2F6FED",
+    "#5B8DEF",
+    "#8FB4F5",
+    "#1F9D6B",
+    "#4FBE93",
+    "#F0A202",
+    "#F5C45E",
+    "#D0454C",
+    "#E07B80",
+    "#8A8F98"
+  ],
+  "foreground": "#1A1D21",
+  "foregroundNeutralSecondary": "#6B7280",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F4F6F8",
+  "tableAccent": "#2F6FED",
+  "good": "#1F9D6B",
+  "bad": "#D0454C",
+  "neutral": "#6B7280",
+  "textClasses": {
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 12,
+      "color": "#1A1D21"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 9,
+      "color": "#6B7280"
+    },
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 24,
+      "color": "#1A1D21"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#E3E7EB"
+              }
+            },
+            "radius": 8
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,75 @@
+/// Ship-to country. Sits on the fact rather than only on the customer, because
+/// guest rows have no customer but always have a country.
+table dim_country
+	lineageTag: 3b1e0003-0000-4000-8000-000000000003
+
+	column country_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0003-0001-4000-8000-000000000003
+		summarizeBy: none
+		sourceColumn: country_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// dataCategory drives correct map placement for the filled map visual.
+	column country
+		dataType: string
+		lineageTag: 3b1e0003-0002-4000-8000-000000000003
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	/// ISO-2. Supplied because several source names ('EIRE', 'RSA') do not
+	/// geocode reliably from the name alone.
+	column iso2
+		dataType: string
+		lineageTag: 3b1e0003-0003-4000-8000-000000000003
+		summarizeBy: none
+		sourceColumn: iso2
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 3b1e0003-0004-4000-8000-000000000003
+		dataCategory: Continent
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_domestic
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3b1e0003-0005-4000-8000-000000000003
+		summarizeBy: none
+		sourceColumn: is_domestic
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Geography Drill'
+		lineageTag: 3b1e0003-00f0-4000-8000-000000000003
+
+		level Region
+			lineageTag: 3b1e0003-00f1-4000-8000-000000000003
+			column: region
+
+		level Country
+			lineageTag: 3b1e0003-00f2-4000-8000-000000000003
+			column: country
+
+	partition dim_country = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="analytics",Item="vw_dim_country"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+

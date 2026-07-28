@@ -1,0 +1,151 @@
+/// Sales fact at invoice-line grain. Returns are present with negative
+/// quantity and is_return = TRUE, so SUM(line_revenue) is net by construction.
+///
+/// Every column is hidden. Users interact with measures, not raw columns --
+/// dragging line_revenue onto a visual would produce an implicit SUM that
+/// bypasses the tested measures and silently disagrees with the KPI cards.
+table fact_sales
+	lineageTag: 3b1e0005-0000-4000-8000-000000000005
+
+	column sale_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0001-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: sale_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_no
+		dataType: string
+		lineageTag: 3b1e0005-0002-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: invoice_no
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_line
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0003-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: invoice_line
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0004-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: date_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_ts
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 3b1e0005-0005-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: invoice_ts
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0006-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: product_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0007-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: customer_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column country_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0008-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: country_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0005-0009-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: quantity
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column unit_price
+		dataType: decimal
+		formatString: \£#,0.00
+		lineageTag: 3b1e0005-000a-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: unit_price
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_revenue
+		dataType: decimal
+		formatString: \£#,0.00
+		lineageTag: 3b1e0005-000b-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: line_revenue
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_return
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3b1e0005-000c-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: is_return
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// TRUE on every line of a customer's first invoice. Precomputed in SQL so
+	/// the New/Returning split is a filter rather than an expensive iterator.
+	column is_first_order
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3b1e0005-000d-4000-8000-000000000005
+		summarizeBy: none
+		sourceColumn: is_first_order
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="analytics",Item="vw_fact_sales"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+

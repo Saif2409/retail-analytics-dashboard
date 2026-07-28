@@ -1,0 +1,71 @@
+/// Customer dimension. Key -1 is the reserved 'Guest / Unknown' member that
+/// carries revenue from the ~20% of source rows with no customer id.
+table dim_customer
+	lineageTag: 3b1e0004-0000-4000-8000-000000000004
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0004-0001-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: customer_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0004-0002-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_label
+		dataType: string
+		lineageTag: 3b1e0004-0003-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: customer_label
+
+		annotation SummarizationSetBy = Automatic
+
+	/// FALSE only for the guest member. Useful as a filter when a visual should
+	/// show identifiable customers only.
+	column is_known_customer
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3b1e0004-0004-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: is_known_customer
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The customer's home country. Distinct from the fact's ship-to country.
+	column country
+		dataType: string
+		lineageTag: 3b1e0004-0005-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 3b1e0004-0006-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="analytics",Item="vw_dim_customer"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+

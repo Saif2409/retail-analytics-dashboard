@@ -1,0 +1,35 @@
+/// Retail Analytics star schema over PostgreSQL (schema: analytics).
+/// discourageImplicitMeasures stops implicit SUMs that would bypass the tested
+/// measures. Auto date/time is disabled so core.dim_date is the only calendar.
+/// Rationale for both is in dax/measures.md and the README.
+model Model
+	culture: en-GB
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-GB
+
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+	annotation PBI_QueryOrder = ["PgServer","PgDatabase","dim_date","dim_product","dim_customer","dim_country","fact_sales","customer_rfm","cohort_retention","_Measures"]
+
+	annotation __PBI_TimeIntelligenceEnabled = 0
+
+ref table dim_date
+ref table dim_product
+ref table dim_customer
+ref table dim_country
+ref table fact_sales
+ref table customer_rfm
+ref table cohort_retention
+ref table _Measures
+
+ref expression PgServer
+ref expression PgDatabase
+
+ref relationship dim_date_fact_sales
+ref relationship dim_product_fact_sales
+ref relationship dim_customer_fact_sales
+ref relationship dim_country_fact_sales
+ref relationship dim_customer_customer_rfm

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.8.0/schema.json",
+  "name": "txtHeader",
+  "position": {
+    "x": 20,
+    "y": 12,
+    "z": 0,
+    "width": 780,
+    "height": 74,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Customers & Retention\n",
+                    "textStyle": {
+                      "fontSize": "18pt",
+                      "color": "#1A1D21",
+                      "fontWeight": "bold",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "RFM scored against the last date in the extract, not today  |  guest checkouts carry revenue but cannot be scored, so they show as (Blank)",
+                    "textStyle": {
+                      "fontSize": "9.5pt",
+                      "color": "#6B7280",
+                      "fontWeight": "normal",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

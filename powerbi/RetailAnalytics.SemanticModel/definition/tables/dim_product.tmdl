@@ -1,0 +1,63 @@
+/// Product dimension. Service lines (postage, discounts, bank charges, test
+/// rows) are filtered out upstream by analytics.vw_dim_product.
+table dim_product
+	lineageTag: 3b1e0002-0000-4000-8000-000000000002
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0002-0001-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: product_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column stock_code
+		dataType: string
+		lineageTag: 3b1e0002-0002-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: stock_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column description
+		dataType: string
+		lineageTag: 3b1e0002-0003-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = Automatic
+
+	/// DERIVED by keyword heuristic in SQL -- the source dataset has no category
+	/// column. Good enough to navigate by, not a financial classification.
+	column product_category
+		dataType: string
+		lineageTag: 3b1e0002-0004-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: product_category
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Product Drill'
+		lineageTag: 3b1e0002-00f0-4000-8000-000000000002
+
+		level Category
+			lineageTag: 3b1e0002-00f1-4000-8000-000000000002
+			column: product_category
+
+		level Product
+			lineageTag: 3b1e0002-00f2-4000-8000-000000000002
+			column: description
+
+	partition dim_product = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="analytics",Item="vw_dim_product"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+

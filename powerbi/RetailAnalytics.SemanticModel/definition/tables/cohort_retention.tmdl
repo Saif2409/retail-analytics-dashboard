@@ -1,0 +1,84 @@
+/// Monthly cohort retention, pre-aggregated in SQL
+/// (analytics.vw_cohort_retention).
+///
+/// Deliberately unrelated to the star schema. Its grain is cohort x activity
+/// month, which is not the fact's grain, so joining it to dim_date would filter
+/// it by the wrong one of its two date columns. Standalone is the correct
+/// modelling choice for a pre-aggregated cohort matrix: it is read directly by
+/// its own visual and is not meant to respond to the report's date slicer.
+table cohort_retention
+	lineageTag: 3b1e0008-0000-4000-8000-000000000008
+
+	column cohort_month
+		dataType: string
+		lineageTag: 3b1e0008-0001-4000-8000-000000000008
+		summarizeBy: none
+		sourceColumn: cohort_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column cohort_month_start
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 3b1e0008-0002-4000-8000-000000000008
+		summarizeBy: none
+		sourceColumn: cohort_month_start
+
+		annotation SummarizationSetBy = Automatic
+
+	column activity_month
+		dataType: string
+		lineageTag: 3b1e0008-0003-4000-8000-000000000008
+		summarizeBy: none
+		sourceColumn: activity_month
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 0 = acquisition month, so retention is 100% there by construction.
+	column months_since
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0008-0004-4000-8000-000000000008
+		summarizeBy: none
+		sourceColumn: months_since
+
+		annotation SummarizationSetBy = Automatic
+
+	column cohort_size
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3b1e0008-0005-4000-8000-000000000008
+		summarizeBy: none
+		sourceColumn: cohort_size
+
+		annotation SummarizationSetBy = Automatic
+
+	column active_customers
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3b1e0008-0006-4000-8000-000000000008
+		summarizeBy: none
+		sourceColumn: active_customers
+
+		annotation SummarizationSetBy = Automatic
+
+	column retention_pct
+		dataType: double
+		formatString: 0.0
+		lineageTag: 3b1e0008-0007-4000-8000-000000000008
+		summarizeBy: sum
+		sourceColumn: retention_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	partition cohort_retention = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="analytics",Item="vw_cohort_retention"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+

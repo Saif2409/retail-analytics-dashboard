@@ -1,0 +1,17 @@
+/// Connection parameters. Change these two values to repoint the whole model
+/// at a different server or database -- every table partition references them
+/// rather than hard-coding a connection string.
+expression PgServer = "localhost:5432" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8f0a1c22-0001-4a10-9f01-a10000000001
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression PgDatabase = "retail_analytics" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8f0a1c22-0002-4a10-9f01-a10000000002
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

@@ -1,0 +1,295 @@
+/// Measure-only table. Holds no data -- it exists so every measure groups in
+/// one place in the field list instead of scattering across the fact and
+/// dimensions. Prose explanations for each measure live in dax/measures.md.
+table _Measures
+	lineageTag: 3b1e0006-0000-4000-8000-000000000006
+
+	measure 'Net Revenue' = SUM ( fact_sales[line_revenue] )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0001-4000-8000-000000000006
+
+	measure 'Gross Revenue' = CALCULATE ( [Net Revenue], fact_sales[is_return] = FALSE )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0002-4000-8000-000000000006
+
+	measure 'Returned Revenue' = ABS ( CALCULATE ( [Net Revenue], fact_sales[is_return] = TRUE ) )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0003-4000-8000-000000000006
+
+	measure 'Return Rate %' = DIVIDE ( [Returned Revenue], [Gross Revenue] )
+		formatString: 0.0%
+		lineageTag: 3b1e0006-0004-4000-8000-000000000006
+
+	/// Sales invoices only -- a credit note is not an order.
+	measure 'Total Orders' =
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_sales[invoice_no] ),
+			    fact_sales[is_return] = FALSE
+			)
+		formatString: #,0
+		lineageTag: 3b1e0006-0005-4000-8000-000000000006
+
+	measure 'Return Invoices' =
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_sales[invoice_no] ),
+			    fact_sales[is_return] = TRUE
+			)
+		formatString: #,0
+		lineageTag: 3b1e0006-0006-4000-8000-000000000006
+
+	measure 'Units Sold' = SUM ( fact_sales[quantity] )
+		formatString: #,0
+		lineageTag: 3b1e0006-0007-4000-8000-000000000006
+
+	/// Excludes the guest member (-1), which is synthetic and would otherwise
+	/// count as one customer worth a fifth of the business.
+	measure 'Active Customers' =
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_sales[customer_key] ),
+			    fact_sales[customer_key] <> -1
+			)
+		formatString: #,0
+		lineageTag: 3b1e0006-0008-4000-8000-000000000006
+
+	measure 'Avg Order Value' = DIVIDE ( [Net Revenue], [Total Orders] )
+		formatString: \£#,0.00
+		lineageTag: 3b1e0006-0009-4000-8000-000000000006
+
+	measure 'Avg Basket Size' = DIVIDE ( [Units Sold], [Total Orders] )
+		formatString: #,0.0
+		lineageTag: 3b1e0006-000a-4000-8000-000000000006
+
+	measure 'Revenue per Customer' = DIVIDE ( [Net Revenue], [Active Customers] )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-000b-4000-8000-000000000006
+
+	measure 'New Customers' =
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_sales[customer_key] ),
+			    fact_sales[is_first_order] = TRUE,
+			    fact_sales[customer_key] <> -1
+			)
+		formatString: #,0
+		lineageTag: 3b1e0006-000c-4000-8000-000000000006
+
+	measure 'Returning Customers' = [Active Customers] - [New Customers]
+		formatString: #,0
+		lineageTag: 3b1e0006-000d-4000-8000-000000000006
+
+	/// Snapshot measures over customer_rfm. That table is a point-in-time
+	/// scoring, and filters flow dimension -> fact, never fact -> dimension, so
+	/// these deliberately do not respond to the date slicer.
+	measure 'Repeat Customers' =
+			CALCULATE ( COUNTROWS ( customer_rfm ), customer_rfm[frequency_orders] > 1 )
+		formatString: #,0
+		lineageTag: 3b1e0006-0031-4000-8000-000000000006
+
+	measure 'Repeat Rate %' = DIVIDE ( [Repeat Customers], COUNTROWS ( customer_rfm ) )
+		formatString: 0.0%
+		lineageTag: 3b1e0006-0032-4000-8000-000000000006
+
+	measure 'Avg Recency (days)' = AVERAGE ( customer_rfm[recency_days] )
+		formatString: #,0
+		lineageTag: 3b1e0006-0033-4000-8000-000000000006
+
+	measure 'Customer Lifetime Value' = SUM ( customer_rfm[monetary_revenue] )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0034-4000-8000-000000000006
+
+	/// AVERAGE, not SUM: retention_pct is already a percentage per cohort/month
+	/// cell, so summing it across a collapsed row is meaningless. Needed as a
+	/// measure at all because a raw column dropped into a matrix's Values well
+	/// gets treated as another grouping instead of being aggregated.
+	measure 'Retention %' = AVERAGE ( cohort_retention[retention_pct] )
+		formatString: 0.0
+		lineageTag: 3b1e0006-0035-4000-8000-000000000006
+
+	measure 'Net Revenue LY' = CALCULATE ( [Net Revenue], SAMEPERIODLASTYEAR ( dim_date[full_date] ) )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-000e-4000-8000-000000000006
+
+	/// The IF suppresses a fake +100% across the whole first year, where there
+	/// is no prior year and subtracting BLANK returns the full current value.
+	measure 'Revenue YoY' =
+			VAR CurrentRevenue = [Net Revenue]
+			VAR Prior = [Net Revenue LY]
+			RETURN
+			    IF ( NOT ISBLANK ( Prior ), CurrentRevenue - Prior )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-000f-4000-8000-000000000006
+
+	measure 'Revenue YoY %' =
+			VAR Prior = [Net Revenue LY]
+			RETURN
+			    DIVIDE ( [Revenue YoY], ABS ( Prior ) )
+		formatString: 0.0%
+		lineageTag: 3b1e0006-0010-4000-8000-000000000006
+
+	measure 'Orders LY' = CALCULATE ( [Total Orders], SAMEPERIODLASTYEAR ( dim_date[full_date] ) )
+		formatString: #,0
+		lineageTag: 3b1e0006-0011-4000-8000-000000000006
+
+	measure 'Orders YoY %' = DIVIDE ( [Total Orders] - [Orders LY], [Orders LY] )
+		formatString: 0.0%
+		lineageTag: 3b1e0006-0012-4000-8000-000000000006
+
+	/// Clips the prior year to the same day-of-month when the visible month is
+	/// partial, so December 2011's nine trading days compare against December
+	/// 2010's first nine rather than its full thirty-one.
+	measure 'Revenue YoY % (Like-for-Like)' =
+			VAR LastTxnDate = CALCULATE ( MAX ( fact_sales[invoice_ts] ), ALL ( fact_sales ) )
+			VAR CutoffDay = DAY ( LastTxnDate )
+			VAR IsPartial = MAX ( dim_date[month_end] ) > LastTxnDate
+			VAR PriorAligned =
+			    CALCULATE (
+			        [Net Revenue],
+			        SAMEPERIODLASTYEAR ( dim_date[full_date] ),
+			        dim_date[day_of_month] <= CutoffDay
+			    )
+			VAR Prior = IF ( IsPartial, PriorAligned, [Net Revenue LY] )
+			RETURN
+			    DIVIDE ( [Net Revenue] - Prior, ABS ( Prior ) )
+		formatString: 0.0%
+		lineageTag: 3b1e0006-0013-4000-8000-000000000006
+
+	measure 'Revenue YTD' = TOTALYTD ( [Net Revenue], dim_date[full_date] )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0014-4000-8000-000000000006
+
+	measure 'Revenue YTD LY' = CALCULATE ( [Revenue YTD], SAMEPERIODLASTYEAR ( dim_date[full_date] ) )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0015-4000-8000-000000000006
+
+	measure 'Net Revenue PM' = CALCULATE ( [Net Revenue], DATEADD ( dim_date[full_date], -1, MONTH ) )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0016-4000-8000-000000000006
+
+	measure 'Revenue MoM %' =
+			VAR Prior = [Net Revenue PM]
+			RETURN
+			    DIVIDE ( [Net Revenue] - Prior, ABS ( Prior ) )
+		formatString: 0.0%
+		lineageTag: 3b1e0006-0017-4000-8000-000000000006
+
+	/// Iterates year_month, so it averages MONTHS. Iterating the window's dates
+	/// directly would return an average daily figure ~30x smaller.
+	measure 'Revenue 3M Moving Avg' =
+			VAR Window =
+			    DATESINPERIOD ( dim_date[full_date], MAX ( dim_date[full_date] ), -3, MONTH )
+			RETURN
+			    CALCULATE (
+			        AVERAGEX ( VALUES ( dim_date[year_month] ), [Net Revenue] ),
+			        Window
+			    )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0018-4000-8000-000000000006
+
+	/// The "+ 0" is load-bearing: this retailer does not trade Saturdays, and
+	/// AVERAGEX skips BLANK, which would divide by 6 instead of 7.
+	measure 'Revenue 7D Moving Avg' =
+			VAR Window =
+			    DATESINPERIOD ( dim_date[full_date], MAX ( dim_date[full_date] ), -7, DAY )
+			RETURN
+			    CALCULATE (
+			        AVERAGEX ( VALUES ( dim_date[full_date] ), [Net Revenue] + 0 ),
+			        Window
+			    )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-0019-4000-8000-000000000006
+
+	measure 'Revenue 30D Moving Avg' =
+			VAR Window =
+			    DATESINPERIOD ( dim_date[full_date], MAX ( dim_date[full_date] ), -30, DAY )
+			RETURN
+			    CALCULATE (
+			        AVERAGEX ( VALUES ( dim_date[full_date] ), [Net Revenue] + 0 ),
+			        Window
+			    )
+		formatString: \£#,0
+		lineageTag: 3b1e0006-001a-4000-8000-000000000006
+
+	/// REMOVEFILTERS on specific dimensions, not ALL(fact_sales), so the
+	/// denominator still respects the date slicer.
+	measure '% of Total Revenue' =
+			DIVIDE (
+			    [Net Revenue],
+			    CALCULATE (
+			        [Net Revenue],
+			        REMOVEFILTERS ( dim_product ),
+			        REMOVEFILTERS ( dim_country )
+			    )
+			)
+		formatString: 0.0%
+		lineageTag: 3b1e0006-001b-4000-8000-000000000006
+
+	measure 'Product Revenue Rank' =
+			IF (
+			    NOT ISBLANK ( [Net Revenue] ),
+			    RANKX ( ALLSELECTED ( dim_product[description] ), [Net Revenue],, DESC, DENSE )
+			)
+		formatString: #,0
+		lineageTag: 3b1e0006-001c-4000-8000-000000000006
+
+	measure 'Running Total Revenue' =
+			CALCULATE (
+			    [Net Revenue],
+			    FILTER (
+			        ALLSELECTED ( dim_date[full_date] ),
+			        dim_date[full_date] <= MAX ( dim_date[full_date] )
+			    )
+			)
+		formatString: \£#,0
+		lineageTag: 3b1e0006-001d-4000-8000-000000000006
+
+	measure 'KPI Revenue Label' =
+			VAR V = [Net Revenue]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ABS ( V ) >= 1000000, FORMAT ( V / 1000000, "£0.00" ) & "M",
+			        ABS ( V ) >= 1000, FORMAT ( V / 1000, "£0.0" ) & "K",
+			        FORMAT ( V, "£0" )
+			    )
+		lineageTag: 3b1e0006-001e-4000-8000-000000000006
+
+	measure 'YoY Indicator' =
+			VAR Pct = [Revenue YoY %]
+			RETURN
+			    IF (
+			        ISBLANK ( Pct ),
+			        "—",
+			        IF ( Pct >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( Pct ), "0.0%" ) & " vs LY"
+			    )
+		lineageTag: 3b1e0006-001f-4000-8000-000000000006
+
+	measure 'YoY Colour' =
+			VAR Pct = [Revenue YoY %]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( Pct ), "#8A8F98",
+			        Pct >= 0, "#1F9D6B",
+			        "#D0454C"
+			    )
+		lineageTag: 3b1e0006-0020-4000-8000-000000000006
+
+	column _placeholder
+		dataType: string
+		isHidden
+		lineageTag: 3b1e0006-00f0-4000-8000-000000000006
+		summarizeBy: none
+		sourceColumn: _placeholder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = #table(type table [_placeholder = text], {}),
+				    Data = Source
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+

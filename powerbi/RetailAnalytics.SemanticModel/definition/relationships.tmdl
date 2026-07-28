@@ -1,0 +1,30 @@
+relationship dim_date_fact_sales
+	fromColumn: fact_sales.date_key
+	toColumn: dim_date.date_key
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship dim_product_fact_sales
+	fromColumn: fact_sales.product_key
+	toColumn: dim_product.product_key
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship dim_customer_fact_sales
+	fromColumn: fact_sales.customer_key
+	toColumn: dim_customer.customer_key
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship dim_country_fact_sales
+	fromColumn: fact_sales.country_key
+	toColumn: dim_country.country_key
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship dim_customer_customer_rfm
+	fromColumn: customer_rfm.customer_key
+	toColumn: dim_customer.customer_key
+	fromCardinality: one
+	toCardinality: one
+	crossFilteringBehavior: bothDirections

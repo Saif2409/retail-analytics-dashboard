@@ -1,0 +1,170 @@
+/// Per-customer RFM scores and segment, computed in SQL
+/// (analytics.vw_customer_rfm). Recency is measured against the last date in
+/// the extract, not today -- see the note in sql/06_analysis_views.sql.
+///
+/// One row per identifiable customer, so this joins one-to-one to
+/// dim_customer. Guests are absent by construction: they cannot be scored
+/// across time.
+table customer_rfm
+	lineageTag: 3b1e0007-0000-4000-8000-000000000007
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0007-0001-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: customer_key
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0007-0002-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_label
+		dataType: string
+		lineageTag: 3b1e0007-0003-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: customer_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: 3b1e0007-0004-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 3b1e0007-0005-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_order_date
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 3b1e0007-0006-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: first_order_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_order_date
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 3b1e0007-0007-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: last_order_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenure_days
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3b1e0007-0008-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: tenure_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column recency_days
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3b1e0007-0009-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: recency_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column frequency_orders
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3b1e0007-000a-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: frequency_orders
+
+		annotation SummarizationSetBy = Automatic
+
+	column monetary_revenue
+		dataType: decimal
+		formatString: \£#,0.00
+		lineageTag: 3b1e0007-000b-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: monetary_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_order_value
+		dataType: decimal
+		formatString: \£#,0.00
+		lineageTag: 3b1e0007-000c-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: avg_order_value
+
+		annotation SummarizationSetBy = Automatic
+
+	column r_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0007-000d-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: r_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column f_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0007-000e-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: f_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column m_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b1e0007-000f-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: m_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column rfm_cell
+		dataType: string
+		lineageTag: 3b1e0007-0010-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: rfm_cell
+
+		annotation SummarizationSetBy = Automatic
+
+	column rfm_segment
+		dataType: string
+		lineageTag: 3b1e0007-0011-4000-8000-000000000007
+		summarizeBy: none
+		sourceColumn: rfm_segment
+
+		annotation SummarizationSetBy = Automatic
+
+	partition customer_rfm = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="analytics",Item="vw_customer_rfm"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table
+
